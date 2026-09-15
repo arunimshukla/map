@@ -49,7 +49,7 @@ See detailed solution architecture and trade-offs in [**Approach: Private Paymen
 
 - **China:** Apply these patterns to e-CNY (Digital Yuan) infrastructure through approved BSN channels
 - **EU/US:** Licensed stablecoins under MiCA/GENIUS frameworks
-- **Hong Kong:** SFC-licensed digital payment token services
+- **Hong Kong:** HKMA-licensed fiat-referenced stablecoin issuers under the Stablecoins Ordinance
 
 ### Non‑Solutions
 
