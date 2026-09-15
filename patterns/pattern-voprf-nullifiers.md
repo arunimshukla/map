@@ -105,3 +105,4 @@ A KYC issuer gives a user a credential with an internal credential identifier. A
 - [RFC 9576 (Privacy Pass Architecture)](https://www.rfc-editor.org/rfc/rfc9576.html)
 - [TACEO vOPRF writeup](https://core.taceo.io/articles/taceo-oprf/)
 - [TACEO Merces vendor page](../vendors/taceo-merces.md)
+- [Beasley (Li, Wang, Zhang, ePrint 2026/2010)](https://eprint.iacr.org/2026/2010): an implemented round-optimal, maliciously secure lattice VOPRF over MLWE/MSIS, and a candidate post-quantum replacement for the DDH construction here, benchmarked at 520 ms for the client request and proof, 15.3 ms verification, and 109 KB client communication on one AVX2 core. Bandwidth is orders of magnitude above the elliptic-curve version, and the paper covers a single server rather than the threshold committee this pattern assumes.
