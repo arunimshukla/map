@@ -26,7 +26,7 @@ crops_profile:
   s: medium
 
 crops_context:
-  cr: "Transfers are gated by the identity registry and compliance modules. Any token agent can freeze, force-transfer, or blacklist addresses at will, so censorship resistance is structurally `none`."
+  cr: "Investor-initiated transfers are gated by the identity registry and compliance modules. The standard also gives owner- and agent-controlled administrative paths such as freezing and forced transfer, so censorship resistance is structurally `none` without strong governance constraints."
   o: "Standard specification is open and the reference implementations are source-available, but claim issuer ecosystems are gatekept. Could reach `yes` by requiring copyleft licensing on compliance modules and a permissionless attestation registry for claim issuers."
   p: "Identities and transfer parameters are public on chain. Could reach `partial` by replacing on-chain identity checks with zero-knowledge proofs of claim validity, enabling transfer validation without exposing PII."
   s: "Rides on correctness of the compliance modules and operational security of the token-agent key. Could reach `high` with multisig governance and time-locked upgrades on the issuer admin path."
@@ -45,34 +45,39 @@ related_patterns:
 
 ## Intent
 
-Enable compliant tokenization of real-world assets with built-in identity management, transfer restrictions, and regulatory rules enforced at the smart-contract level. Each transfer is gated by an on-chain identity check and a configurable compliance module before the underlying transfer executes.
+Enable compliant tokenization of real-world assets with built-in identity management, transfer restrictions, and regulatory rules enforced at the smart-contract level. Investor-initiated transfers are gated by on-chain identity and configurable compliance checks; issuance and agent-controlled actions follow separate rules.
 
 ## Components
 
-- Permissioned token contract (ERC-3643) exposes an ERC-20 interface but routes every transfer through compliance and identity checks.
+- Permissioned token contract (ERC-3643) exposes an ERC-20 interface and applies identity and compliance checks to investor-initiated transfers.
+- Token owner configures token metadata, registries, compliance settings, and the agents responsible for operational administration.
+- Token agents perform operational controls such as minting, burning, recovery, freezing, and forced transfer, subject to the deployed implementation and governance policy.
 - On-chain identity contract per participant stores claims (KYC, accreditation, jurisdiction) and exposes verification endpoints.
 - Identity registry maps wallet addresses to identity contracts and gates who is eligible to hold the token.
 - Compliance module suite is a pluggable rules engine that evaluates per-transfer restrictions (caps, lockups, eligibility classes).
 - Claim issuers are off-chain actors that sign claims written into identity contracts; the registry tracks trusted issuers.
-- Token agent holds administrative powers: freeze, force-transfer, blacklist, supply management, compliance-rule updates.
 
 ## Protocol
 
 1. [user] Create an on-chain identity and collect signed claims from trusted issuers (KYC, accreditation, jurisdiction).
 2. [operator] Deploy the permissioned token with a specific compliance ruleset and transfer restrictions.
 3. [operator] Populate the identity registry with eligible participants and their identity contracts.
-4. [user] Initiate a transfer to a recipient address.
-5. [contract] Validate both sender and receiver against the identity registry and run every compliance module; revert on any failure.
-6. [contract] Execute the balance change and emit transfer and compliance events.
+4. [user] Initiate an investor transfer to a recipient address.
+5. [contract] For the investor-initiated transfer path, validate the relevant identities and compliance rules; revert on any failure.
+6. [contract] Execute the balance change and emit transfer and compliance events. Issuance, recovery, freezing, and forced-transfer paths use their own role and eligibility checks.
 7. [regulator] Query the on-chain compliance history to reconcile against regulatory filings.
+
+## Transfer-path note
+
+ERC-3643 distinguishes investor-initiated transfers from administrative actions. The canonical specification states that `mint` and `forcedTransfer` can bypass compliance rules while still requiring a verified recipient. Implementations can differ: the current ERC-3643 reference contract invokes `canTransfer` for `mint` but not for `forcedTransfer`. Integrators should verify the exact deployed version before treating the token as enforcing one uniform rule on every movement of value.
 
 ## Guarantees & threat model
 
 Guarantees:
 
-- Every transfer passes identity verification and compliance checks before execution.
-- Transfer rules enforce KYC/AML status, investor accreditation, and jurisdictional restrictions automatically.
-- Full on-chain audit trail of ownership changes, freezes, and force-transfers.
+- Every investor-initiated `transfer` or `transferFrom` path passes identity verification and compliance checks before execution.
+- Transfer rules can enforce KYC/AML status, investor accreditation, and jurisdictional restrictions automatically, subject to the configured claim issuers and compliance modules.
+- Administrative actions such as freezes and forced transfers are observable on chain, but their authority and policy constraints must be documented separately.
 - Interface compatibility with ERC-20 tooling, with additional transfer restrictions opaque to the caller.
 
 Threat model:
